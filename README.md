@@ -1,4 +1,4 @@
-# 🚀 AI Business Opportunity Advisor — FreshTrace AI
+# 🚀 Rintis — AI Business Opportunity Advisor
 
 > **COMPFEST 18 AI Innovation Competition (AIC)**  
 > **Tema**: AI for the Backbone of the Economy — *Smart Commerce*  
@@ -8,7 +8,7 @@
 
 ## 📌 Ringkasan Solusi
 
-**AI Business Opportunity Advisor** adalah *Explainable Decision Support System* (EDSS) berbasis AI yang dirancang untuk membantu calon UMKM dan penjual baru (*new sellers*) mengidentifikasi celah pasar (*market gap* & *micro-niche*), mensimulasikan skenario harga (*what-if analysis*), serta memahami alasan di balik rekomendasi bisnis secara transparan menggunakan **Explainable AI (TreeSHAP)**.
+**Rintis** (*AI Business Opportunity Advisor*) adalah *Explainable Decision Support System* (EDSS) berbasis AI yang dirancang untuk membantu calon UMKM dan penjual baru (*new sellers*) mengidentifikasi celah pasar (*market gap* & *micro-niche*), mensimulasikan skenario harga (*what-if analysis*), serta memahami alasan di balik rekomendasi bisnis secara transparan menggunakan **Explainable AI (TreeSHAP)**.
 
 Sistem fokus pada 3 kategori utama: **Fashion**, **Makanan**, dan **Minuman**.
 
@@ -228,8 +228,8 @@ npm run dev
 *Universitas Diponegoro*
 
 - **Raffie Aditya Akbar** (NIM: 24060124130054)
-- **Reynaldi Bertinus Hutagaol**
-- **Saburo Rafqi Hidayat**
+- **Reynaldi Bertinus Hutagaol** (NIM: 24060124140157)
+- **Saburo Rafqi Hidayat** (NIM: 24060124140196)
 - **Syuraih Umar Khotthob** (NIM: 24060124130092)
 - **Yuma Hazza Yuditama** (NIM: 24060124120035)
 
