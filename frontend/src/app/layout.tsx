@@ -14,7 +14,11 @@ export const metadata: Metadata = {
     "Temukan peluang pasar digital terbaik untuk bisnis Anda dengan AI",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="id" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-[family-name:var(--font-inter)]">
