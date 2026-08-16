@@ -5,6 +5,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import ResultsView, { AnalysisResult } from "../components/ResultsView";
 import { getMockResult } from "../mockData";
+import { analyzeKeyword } from "../api";
 
 function ResultPageContent() {
   const searchParams = useSearchParams();
@@ -14,12 +15,16 @@ function ResultPageContent() {
   const urlKeyword = searchParams.get("keyword") || searchParams.get("search") || searchParams.get("q") || "frozen food dimsum";
 
   const [result, setResult] = useState<AnalysisResult>(() => getMockResult(urlKeyword));
+  const [isLoading, setIsLoading] = useState(true);
 
   const [bgOpacity, setBgOpacity] = useState(1);
 
   useEffect(() => {
     if (urlKeyword) {
-      setResult(getMockResult(urlKeyword));
+      setIsLoading(true);
+      analyzeKeyword(urlKeyword)
+        .then((data) => setResult(data))
+        .finally(() => setIsLoading(false));
     }
   }, [urlKeyword]);
 

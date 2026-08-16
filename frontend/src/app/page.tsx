@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import SearchBar from "./components/SearchBar";
-import { AnalysisResult } from "./components/ResultsView";
+import { analyzeKeyword } from "./api";
 
 /* ──────────── Home Page ──────────── */
 
@@ -14,14 +14,18 @@ function HomeContent() {
   const [keyword, setKeyword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (submittedKeyword: string) => {
+  const handleSubmit = async (submittedKeyword: string) => {
     if (!submittedKeyword.trim() || isLoading) return;
     setIsLoading(true);
 
-    // Simulate API delay, then navigate directly to dedicated /result page route
-    setTimeout(() => {
+    try {
+      // Call backend API (falls back to mock data if unavailable)
+      await analyzeKeyword(submittedKeyword.trim());
       router.push(`/result?keyword=${encodeURIComponent(submittedKeyword.trim())}`);
-    }, 1000);
+    } catch {
+      // Navigate anyway — result page will handle its own data fetching
+      router.push(`/result?keyword=${encodeURIComponent(submittedKeyword.trim())}`);
+    }
   };
 
   /* ────────── LOADING VIEW ────────── */
