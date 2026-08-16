@@ -17,9 +17,9 @@ export default function SearchBar({ keyword, onKeywordChange, onSubmit, isLoadin
   };
 
   return (
-    <form 
-      onSubmit={handleSubmit} 
-      className="search-glass w-[90%] max-w-[650px] flex items-center rounded-full p-1 transition-all duration-300" 
+    <form
+      onSubmit={handleSubmit}
+      className="search-glass w-[90%] max-w-[650px] flex items-center rounded-full p-1 transition-all duration-300"
       role="search"
     >
       <input

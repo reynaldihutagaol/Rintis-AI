@@ -27,15 +27,7 @@ function HomeContent() {
   /* ────────── LOADING VIEW ────────── */
   if (isLoading) {
     return (
-      <main className="relative min-h-screen flex flex-col overflow-hidden">
-        <div
-          className="fixed inset-0 bg-cover bg-bottom bg-no-repeat pointer-events-none"
-          style={{
-            backgroundImage: "url('/bg-hero.png')",
-            backgroundColor: "#f5e6f0",
-          }}
-        />
-
+      <main className="relative min-h-screen flex flex-col overflow-hidden bg-[#FFF3F9]">
         <div className="relative z-10 flex-grow flex flex-col min-h-screen">
           <header className="flex items-center h-[80px] px-8 shrink-0">
             <div className="flex items-center gap-2">
@@ -74,40 +66,34 @@ function HomeContent() {
             />
           </div>
         </div>
+
+        {/* Blue Gradient Overlay */}
+        <div
+          className="fixed -bottom-140 left-0 right-0 pointer-events-none z-20 transition-opacity duration-75"
+          style={{
+            height: "100vh",
+            backgroundImage: "url('/gradation.png')",
+            backgroundSize: "100% 100%",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "bottom center"
+          }}
+        />
       </main>
     );
   }
 
   /* ────────── LANDING VIEW ────────── */
   return (
-    <main className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      <div
-        className="absolute inset-0 bg-cover bg-bottom bg-no-repeat"
-        style={{
-          backgroundImage: "url('/bg-hero.png')",
-          backgroundColor: "#f5e6f0",
-        }}
-      />
-
-      <div
-        className="absolute top-1/2 left-1/2 w-[600px] h-[600px] pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(58,123,213,0.15) 0%, transparent 70%)",
-          animation: "heroGlow 6s ease-in-out infinite alternate",
-          transform: "translate(-50%, -50%)",
-        }}
-      />
-
+    <main className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#FFF3F9]">
       <div className="absolute top-8 left-8 z-10 flex items-center gap-2">
         <Image
           src="/logo.png"
           alt="Logo"
-          width={50}
-          height={50}
+          width={40}
+          height={40}
           className="object-contain"
         />
-        <span className="font-extrabold text-gray-900 text-xl tracking-tight">Rintis AI</span>
+        <span className="font-bold text-gray-900 text-lg tracking-tight">Rintis AI</span>
       </div>
 
       <div className="relative z-10 text-center max-w-[700px] px-6">
@@ -118,7 +104,7 @@ function HomeContent() {
         </h1>
       </div>
 
-      <div className="absolute bottom-[10vh] left-1/2 -translate-x-1/2 flex justify-center w-full z-20">
+      <div className="absolute bottom-[10vh] left-1/2 -translate-x-1/2 flex justify-center w-full z-30">
         <SearchBar
           keyword={keyword}
           onKeywordChange={setKeyword}
@@ -126,6 +112,18 @@ function HomeContent() {
           isLoading={isLoading}
         />
       </div>
+
+      {/* Blue Gradient Overlay */}
+      <div
+        className="fixed -bottom-140 left-0 right-0 pointer-events-none z-20 transition-opacity duration-75"
+        style={{
+          height: "100vh",
+          backgroundImage: "url('/gradation.png')",
+          backgroundSize: "100% 100%",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "bottom center"
+        }}
+      />
     </main>
   );
 }
@@ -133,7 +131,7 @@ function HomeContent() {
 export default function Home() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-[#f5e6f0] text-gray-700">
+      <div className="min-h-screen flex items-center justify-center bg-[#FFF3F9] text-gray-700">
         Loading...
       </div>
     }>
