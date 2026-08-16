@@ -69,8 +69,9 @@ function HomeContent() {
 
         {/* Blue Gradient Overlay */}
         <div
-          className="fixed -bottom-140 left-0 right-0 pointer-events-none z-20 transition-opacity duration-75"
+          className="fixed left-0 right-0 pointer-events-none z-20 transition-opacity duration-75"
           style={{
+            bottom: "-65vh",
             height: "100vh",
             backgroundImage: "url('/gradation.png')",
             backgroundSize: "100% 100%",
@@ -84,24 +85,28 @@ function HomeContent() {
 
   /* ────────── LANDING VIEW ────────── */
   return (
-    <main className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#FFF3F9]">
-      <div className="absolute top-8 left-8 z-10 flex items-center gap-2">
-        <Image
-          src="/logo.png"
-          alt="Logo"
-          width={40}
-          height={40}
-          className="object-contain"
-        />
-        <span className="font-bold text-gray-900 text-lg tracking-tight">Rintis AI</span>
-      </div>
+    <main className="relative min-h-screen flex flex-col overflow-hidden bg-[#FFF3F9]">
+      <header className="flex items-center h-[80px] px-8 shrink-0">
+        <div className="flex items-center gap-2">
+          <Image
+            src="/logo.png"
+            alt="Logo Rintis"
+            width={40}
+            height={40}
+            className="object-contain"
+          />
+          <span className="font-bold text-gray-900 text-lg tracking-tight">Rintis AI</span>
+        </div>
+      </header>
 
-      <div className="relative z-10 text-center max-w-[700px] px-6">
+      <div className="flex-grow flex items-center justify-center">
+        <div className="text-center max-w-[700px] px-6">
         <h1 className="text-[clamp(1.75rem,4vw,2.75rem)] font-semibold text-text-hero leading-tight tracking-tight">
           Peluang bisnis digital terbaik
           <br />
           berada di ujung jari Anda
         </h1>
+        </div>
       </div>
 
       <div className="absolute bottom-[10vh] left-1/2 -translate-x-1/2 flex justify-center w-full z-30">
@@ -115,8 +120,9 @@ function HomeContent() {
 
       {/* Blue Gradient Overlay */}
       <div
-        className="fixed -bottom-140 left-0 right-0 pointer-events-none z-20 transition-opacity duration-75"
+        className="fixed left-0 right-0 pointer-events-none z-20 transition-opacity duration-75"
         style={{
+          bottom: "-65vh",
           height: "100vh",
           backgroundImage: "url('/gradation.png')",
           backgroundSize: "100% 100%",

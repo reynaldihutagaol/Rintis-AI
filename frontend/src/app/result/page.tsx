@@ -74,8 +74,9 @@ function ResultPageContent() {
 
       {/* Blue Gradient Overlay Above Content */}
       <div
-        className="fixed -bottom-140 left-0 right-0 pointer-events-none z-20 transition-opacity duration-75"
+        className="fixed left-0 right-0 pointer-events-none z-20 transition-opacity duration-75"
         style={{
+          bottom: "-65vh",
           height: "100vh",
           backgroundImage: "url('/gradation.png')",
           backgroundSize: "100% 100%",
