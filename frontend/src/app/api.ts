@@ -47,24 +47,59 @@ function mapIcon(icon: string): string {
  * Map backend response to frontend AnalysisResult type.
  */
 function mapToAnalysisResult(data: BackendAnalyzeResponse): AnalysisResult {
+  const demandLabel =
+    data.metrics.predicted_demand > 2000
+      ? "Tinggi"
+      : data.metrics.predicted_demand > 500
+      ? "Sedang"
+      : "Rendah";
+
   return {
     keyword: data.keyword,
-    category: data.category,
+    category: data.category || "F&B",
     opportunity_score: data.opportunity_score,
     opportunity_level: data.opportunity_level,
-    opportunity_label: data.opportunity_label,
+    opportunity_label: data.opportunity_label || "High Opportunity",
     metrics: {
       predicted_demand: data.metrics.predicted_demand,
+      demand_label: demandLabel,
       competition_density: data.metrics.competition_density,
-      competition_label: data.metrics.competition_label,
+      competition_label: data.metrics.competition_label || "Rendah",
       avg_price: data.metrics.avg_price,
+      avg_price_label: data.metrics.avg_price ? `Rp ${data.metrics.avg_price.toLocaleString("id-ID")}` : "Rp xx",
       total_shops: Math.round(data.metrics.competition_density * 100),
     },
+    recommendation_explanation:
+      data.explanations && data.explanations.length > 0
+        ? data.explanations.map((exp) => exp.text).join(", ")
+        : `Jumlah Penjualan tinggi dengan mencapai ${data.metrics.predicted_demand} penjualan, Rating rendah (${data.metrics.competition_density}), Jumlah Ulasan cukup`,
+    other_product_ideas: [
+      {
+        id: "1",
+        name: "Cimol Bojot Aa",
+        demand_label: "Tinggi",
+        competition_label: "Tinggi",
+        avg_price_label: "Rp xx",
+      },
+      {
+        id: "2",
+        name: "Dimsum Ayam Mentai",
+        demand_label: "Tinggi",
+        competition_label: "Tinggi",
+        avg_price_label: "Rp xx",
+      },
+      {
+        id: "3",
+        name: "Baso Aci Garut",
+        demand_label: "Tinggi",
+        competition_label: "Rendah",
+        avg_price_label: "Rp 25.000",
+      },
+    ],
     explanations: data.explanations.map((exp) => ({
       icon: mapIcon(exp.icon),
       text: exp.text,
     })),
-    // factors and provinceBreakdown will use defaults in ResultsView
   };
 }
 
@@ -93,3 +128,4 @@ export async function analyzeKeyword(keyword: string): Promise<AnalysisResult> {
     return getMockResult(keyword);
   }
 }
+
