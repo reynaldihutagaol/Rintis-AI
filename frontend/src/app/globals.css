@@ -7,7 +7,7 @@
   --color-primary-dark: #0f2d5e;
   --color-primary-light: #3a7bd5;
   --color-accent: #4a90d9;
-  --color-text-hero: #1a3a6b;
+  --color-text-hero: #0B5497;
   --color-text-muted: #6b7280;
   --color-high: #22c55e;
   --color-niche: #f59e0b;
@@ -17,7 +17,12 @@
 
 /* Base styles */
 body {
-  background: var(--color-background);
+  background-image: url('/bg-main.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-color: var(--color-background);
   color: var(--color-foreground);
 }
 
@@ -36,42 +41,44 @@ body {
 
 /* Premium Liquid Glass Search Bar (iOS/macOS Style) */
 .search-glass {
-  background: linear-gradient(135deg,
-      rgba(255, 255, 255, 0.22) 0%,
-      rgba(255, 255, 255, 0.08) 50%,
-      rgba(255, 255, 255, 0.15) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.22) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.15) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.45);
   backdrop-filter: blur(28px) saturate(180%);
   -webkit-backdrop-filter: blur(28px) saturate(180%);
   box-shadow:
-    0 20px 40px -15px rgba(0, 10, 30, 0.2),
-    0 0 0 1px rgba(255, 255, 255, 0.25),
-    inset 0 1px 2px 0 rgba(255, 255, 255, 0.6),
-    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.1);
+    0 0 20px 2px rgba(11, 84, 151, 0.22),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.6);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .search-glass:hover {
-  background: linear-gradient(135deg,
-      rgba(255, 255, 255, 0.28) 0%,
-      rgba(255, 255, 255, 0.12) 50%,
-      rgba(255, 255, 255, 0.2) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.28) 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.2) 100%
+  );
   border-color: rgba(255, 255, 255, 0.65);
   box-shadow:
-    0 22px 45px -12px rgba(0, 10, 30, 0.28),
-    0 0 0 1px rgba(255, 255, 255, 0.4),
-    inset 0 1px 3px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.12);
+    0 0 28px 4px rgba(11, 84, 151, 0.3),
+    inset 0 1px 3px 0 rgba(255, 255, 255, 0.8);
 }
 
 .search-glass:focus-within {
-  background: linear-gradient(135deg,
-      rgba(255, 255, 255, 0.32) 0%,
-      rgba(255, 255, 255, 0.15) 50%,
-      rgba(255, 255, 255, 0.25) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.32) 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.25) 100%
+  );
   border-color: rgba(255, 255, 255, 0.85);
   box-shadow:
-    0 25px 50px -12px rgba(0, 10, 30, 0.35),
-    0 0 0 3px rgba(255, 255, 255, 0.25),
+    0 0 35px 6px rgba(11, 84, 151, 0.38),
     inset 0 1px 3px 0 rgba(255, 255, 255, 0.9);
 }
 

@@ -36,9 +36,9 @@ function ResultPageContent() {
   };
 
   return (
-    <main className="relative min-h-screen flex flex-col overflow-hidden bg-[#FFF3F9]">
+    <main className="relative min-h-screen flex flex-col overflow-hidden">
       <div className="relative z-10 flex-grow flex flex-col min-h-screen">
-        <header className="flex items-center justify-between h-[70px] md:h-[80px] px-6 md:px-8 shrink-0">
+        <header className="flex items-center h-[80px] px-8 shrink-0">
           <button
             onClick={handleReset}
             className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
@@ -47,52 +47,33 @@ function ResultPageContent() {
             <Image
               src="/logo.png"
               alt="Logo Rintis"
-              width={36}
-              height={36}
+              width={40}
+              height={40}
               className="object-contain"
             />
-            <span className="font-bold text-gray-900 text-lg tracking-tight">Rintis AI</span>
-          </button>
-
-          <button
-            onClick={handleReset}
-            className="text-xs font-semibold text-gray-600 hover:text-gray-900 bg-white/60 hover:bg-white px-3.5 py-1.5 rounded-full border border-gray-300 transition-all cursor-pointer shadow-xs"
-          >
-            Cari Baru
+            <span className="font-bold text-[#0B5497] text-lg tracking-tight">Rintis AI</span>
           </button>
         </header>
 
         {/* Scrollable Content Container */}
-        <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-[90px]">
-          {isLoading ? (
-            <div className="max-w-[800px] mx-auto py-16 flex flex-col items-center justify-center gap-3">
-              <Image
-                src="/logo.png"
-                alt="Loading"
-                width={36}
-                height={36}
-                className="object-contain animate-smooth-spin"
-              />
-              <p className="text-gray-600 font-semibold text-sm">Memuat analisis...</p>
-            </div>
-          ) : (
-            <ResultsView result={result} onReset={handleReset} />
-          )}
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-[120px]">
+          <ResultsView result={result} onReset={handleReset} />
+        </div>
+
+        {/* Fixed Bottom Center 'Cari Baru' Button */}
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30">
+          <button
+            onClick={handleReset}
+            className="search-glass flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold text-[#0B5497] hover:scale-105 transition-all cursor-pointer shadow-md"
+          >
+            <svg className="w-4 h-4 text-[#0B5497]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" />
+              <circle cx="11" cy="11" r="8" />
+            </svg>
+            Cari Baru
+          </button>
         </div>
       </div>
-
-      {/* Blue Gradient Overlay at Bottom */}
-      <div
-        className="fixed left-0 right-0 pointer-events-none z-20 transition-opacity duration-75"
-        style={{
-          bottom: "-65vh",
-          height: "100vh",
-          backgroundImage: "url('/gradation.png')",
-          backgroundSize: "100% 100%",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "bottom center",
-        }}
-      />
     </main>
   );
 }

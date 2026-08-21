@@ -195,22 +195,32 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
 
   return (
     <div className="w-full max-w-[800px] mx-auto px-2 pt-2 pb-12 animate-[fadeInUp_0.5s_ease_both]">
-      {/* 1. Header Navigation Row: Back Button (Left) & Input Chip (Right) */}
+      {/* 1. Header Navigation Row: Back Button (Left) */}
       <div className="flex items-center justify-between mb-8 gap-4">
         {onReset ? (
           <button
             onClick={onReset}
-            className="inline-flex items-center gap-2 text-xs md:text-sm font-semibold text-gray-700 hover:text-[#0B579E] transition-colors py-2 px-4 rounded-full bg-white/80 border border-gray-300 shadow-xs cursor-pointer"
+            className="inline-flex items-center gap-2 text-xs md:text-sm font-semibold text-gray-700 hover:text-[#0B579E] transition-colors py-2 px-4 rounded-full bg-white border border-gray-300 shadow-xs cursor-pointer"
           >
-            <span className="text-base font-bold">←</span> Cari Kata Kunci Lain
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="shrink-0"
+            >
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+            <span>Cari Kata Kunci Lain</span>
           </button>
         ) : (
           <div />
         )}
-
-        <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#EBF5FF] border border-[#BFDBFE] text-xs md:text-sm font-semibold text-[#1E40AF] shadow-xs">
-          Input: &quot;{currentKeyword}&quot;
-        </div>
       </div>
 
       {/* 2. Status Title & Checklist Circle */}
@@ -223,10 +233,10 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
 
       {/* Dual Badges/Pills */}
       <div className="flex flex-wrap items-center justify-center gap-3 mb-10">
-        <div className="px-5 py-1.5 rounded-full border border-gray-300 bg-white/70 text-xs md:text-sm text-gray-800 shadow-xs">
+        <div className="px-5 py-1.5 rounded-full border border-gray-300 bg-white text-xs md:text-sm text-gray-800 shadow-xs">
           Keyword: <strong className="font-bold text-gray-900">{currentKeyword}</strong>
         </div>
-        <div className="px-5 py-1.5 rounded-full border border-gray-300 bg-white/70 text-xs md:text-sm text-gray-800 shadow-xs">
+        <div className="px-5 py-1.5 rounded-full border border-gray-300 bg-white text-xs md:text-sm text-gray-800 shadow-xs">
           Category: <strong className="font-bold text-gray-900">{currentCategory}</strong>
         </div>
       </div>
@@ -234,7 +244,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
       {/* 3. 3 Main Metric Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
         {/* Card 1: Estimasi Penjualan */}
-        <div className="relative border border-[#0B579E] rounded-xl bg-white/80 backdrop-blur-sm p-5 shadow-xs flex flex-col justify-between min-h-[110px]">
+        <div className="relative border border-[#0B579E] rounded-xl bg-white p-5 shadow-xs flex flex-col justify-between min-h-[110px]">
           <div className="absolute top-4 right-4 text-[#0B579E]">
             <TrendUpIcon />
           </div>
@@ -243,7 +253,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
         </div>
 
         {/* Card 2: Tingkat Kompetitif */}
-        <div className="relative border border-[#0B579E] rounded-xl bg-white/80 backdrop-blur-sm p-5 shadow-xs flex flex-col justify-between min-h-[110px]">
+        <div className="relative border border-[#0B579E] rounded-xl bg-white p-5 shadow-xs flex flex-col justify-between min-h-[110px]">
           <div className="absolute top-4 right-4 text-[#0B579E]">
             <PeopleIcon />
           </div>
@@ -252,7 +262,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
         </div>
 
         {/* Card 3: Rata - rata harga */}
-        <div className="relative border border-[#0B579E] rounded-xl bg-white/80 backdrop-blur-sm p-5 shadow-xs flex flex-col justify-between min-h-[110px]">
+        <div className="relative border border-[#0B579E] rounded-xl bg-white p-5 shadow-xs flex flex-col justify-between min-h-[110px]">
           <div className="absolute top-4 right-4 text-[#0B579E]">
             <PriceTagIcon />
           </div>
@@ -280,7 +290,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
           {productIdeas.map((product, idx) => (
             <div
               key={product.id || idx}
-              className="border border-[#0B579E] rounded-xl p-4 md:p-5 bg-white/70 backdrop-blur-sm shadow-xs flex flex-col md:flex-row items-start md:items-center gap-4"
+              className="border border-[#0B579E] rounded-xl p-4 md:p-5 bg-white shadow-xs flex flex-col md:flex-row items-start md:items-center gap-4"
             >
               {/* Left Food Icon */}
               <BurgerDrinkIcon />
@@ -294,7 +304,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                 {/* 3 Mini Sub-Metric Boxes */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
                   {/* Mini-Box 1 */}
-                  <div className="border border-[#0B579E] rounded-xl px-3.5 py-2 bg-white/90 flex items-center justify-between shadow-xs">
+                  <div className="border border-[#0B579E] rounded-xl px-3.5 py-2 bg-white flex items-center justify-between shadow-xs">
                     <div>
                       <p className="text-[10px] md:text-xs text-gray-600 font-medium">
                         Estimasi Penjualan
@@ -307,7 +317,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                   </div>
 
                   {/* Mini-Box 2 */}
-                  <div className="border border-[#0B579E] rounded-xl px-3.5 py-2 bg-white/90 flex items-center justify-between shadow-xs">
+                  <div className="border border-[#0B579E] rounded-xl px-3.5 py-2 bg-white flex items-center justify-between shadow-xs">
                     <div>
                       <p className="text-[10px] md:text-xs text-gray-600 font-medium">
                         Tingkat Kompetitif
@@ -320,7 +330,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                   </div>
 
                   {/* Mini-Box 3 */}
-                  <div className="border border-[#0B579E] rounded-xl px-3.5 py-2 bg-white/90 flex items-center justify-between shadow-xs">
+                  <div className="border border-[#0B579E] rounded-xl px-3.5 py-2 bg-white flex items-center justify-between shadow-xs">
                     <div>
                       <p className="text-[10px] md:text-xs text-gray-600 font-medium">
                         Rata - rata harga
