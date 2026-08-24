@@ -195,33 +195,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
 
   return (
     <div className="w-full max-w-[800px] mx-auto px-2 pt-2 pb-12 animate-[fadeInUp_0.5s_ease_both]">
-      {/* 1. Header Navigation Row: Back Button (Left) */}
-      <div className="flex items-center justify-between mb-8 gap-4">
-        {onReset ? (
-          <button
-            onClick={onReset}
-            className="inline-flex items-center gap-2 text-xs md:text-sm font-semibold text-gray-700 hover:text-[#0B579E] transition-colors py-2 px-4 rounded-full bg-white border border-gray-300 shadow-xs cursor-pointer"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="shrink-0"
-            >
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
-            <span>Cari Kata Kunci Lain</span>
-          </button>
-        ) : (
-          <div />
-        )}
-      </div>
+
 
       {/* 2. Status Title & Checklist Circle */}
       <div className="flex items-center justify-center gap-3 mb-3">
