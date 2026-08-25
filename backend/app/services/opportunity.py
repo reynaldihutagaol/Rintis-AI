@@ -51,7 +51,7 @@ def _resolve_keyword(keyword_lower: str) -> str:
         return substring_matches[0]
 
     close_matches = difflib.get_close_matches(
-        keyword_lower, _AVAILABLE_KEYWORDS, n=1, cutoff=0.4
+        keyword_lower, _AVAILABLE_KEYWORDS, n=1, cutoff=0.7
     )
     if close_matches:
         return close_matches[0]
@@ -291,6 +291,49 @@ def _build_explanations(kontribusi: dict, context: dict, top_n: int = 3) -> list
 
 
 
+def _build_other_product_ideas(category: str, current_keyword: str) -> list[dict]:
+    """
+    Mengembalikan 3 ide keyword alternatif dalam kategori yang sama
+    menggunakan nama keyword asli (tanpa tambahan kata buatan) dan metrik aktual.
+    """
+    candidates = [
+        kw for kw in _AVAILABLE_KEYWORDS
+        if _category_for_keyword(kw) == category and kw != current_keyword
+    ]
+
+    ideas = []
+    for idx, kw in enumerate(candidates, start=1):
+        stats = market_ref[market_ref["keyword"] == kw].iloc[0]
+        harga = int(stats["median_price"])
+        comp_label = _competition_label(stats["hhi_pasar"])
+
+        kw_encoded = encoder.transform(pd.DataFrame({"keyword": [kw]}))["keyword"].iloc[0]
+        fitur = pd.DataFrame({
+            "keyword_encoded": [kw_encoded],
+            "log_price": [np.log1p(harga)],
+            "price_relative_to_median": [1.0],
+            "hhi_market_concentration": [stats["hhi_pasar"]],
+            "log_wishlist_count": [np.log1p(stats["median_wishlist"])],
+            "positive_eWOM_ratio": [stats["median_eWOM"]],
+        })
+        pred_log = model.predict(fitur)[0]
+        est_terjual = int(np.expm1(pred_log))
+        dem_label = _demand_label(est_terjual)
+
+        ideas.append({
+            "id": str(idx),
+            "name": kw.title(),
+            "demand_label": dem_label,
+            "competition_label": comp_label,
+            "avg_price_label": f"Rp {harga:,.0f}".replace(",", "."),
+            "predicted_demand": est_terjual,
+        })
+
+    # Sort by predicted demand descending, take top 3
+    ideas.sort(key=lambda x: x["predicted_demand"], reverse=True)
+    return ideas[:3]
+
+
 def analyze_keyword(keyword: str) -> dict:
     """
     Analyze a keyword and return opportunity data hasil prediksi model asli.
@@ -337,6 +380,8 @@ def analyze_keyword(keyword: str) -> dict:
         },
     )
 
+    other_product_ideas = _build_other_product_ideas(category, matched_keyword)
+
     return {
         "keyword": keyword,
         # Keyword asli di data pasar yang dipakai untuk prediksi (berguna
@@ -359,6 +404,7 @@ def analyze_keyword(keyword: str) -> dict:
         "shap_features": [
             {"name": FEATURE_LABELS.get(k, k), "value": float(v)} for k, v in kontribusi.items()
         ],
+        "other_product_ideas": other_product_ideas,
         "whatif": {
             "current_price": harga,
             # TODO: range ini placeholder (±30% dari harga).

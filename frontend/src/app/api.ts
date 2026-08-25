@@ -1,5 +1,6 @@
 import { AnalysisResult } from "./components/ResultsView";
 import { getMockResult } from "./mockData";
+import { findMatchingKeyword } from "./keywords";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -15,6 +16,7 @@ interface BackendAnalyzeResponse {
   opportunity_label: string;
   metrics: {
     predicted_demand: number;
+    demand_label?: string;
     competition_density: number;
     competition_label: string;
     avg_price: number;
@@ -33,14 +35,21 @@ interface BackendAnalyzeResponse {
     max_price: number;
     current_demand: number;
   };
+  other_product_ideas?: {
+    id?: string;
+    name: string;
+    demand_label: string;
+    competition_label: string;
+    avg_price_label: string;
+  }[];
 }
 
 /**
  * Map backend emoji icons to frontend icon strings.
  */
 function mapIcon(icon: string): string {
-  if (icon === "✅") return "check";
-  if (icon === "⚠️" || icon === "❌") return "warning";
+  if (icon.includes("✅") || icon.includes("✔")) return "check";
+  if (icon.includes("⚠️") || icon.includes("❌")) return "warning";
   return "check";
 }
 
@@ -49,11 +58,69 @@ function mapIcon(icon: string): string {
  */
 function mapToAnalysisResult(data: BackendAnalyzeResponse): AnalysisResult {
   const demandLabel =
-    data.metrics.predicted_demand > 2000
+    data.metrics.demand_label ||
+    (data.metrics.predicted_demand > 1000
       ? "Tinggi"
-      : data.metrics.predicted_demand > 500
-      ? "Sedang"
-      : "Rendah";
+      : data.metrics.predicted_demand >= 100
+      ? "Medium"
+      : "Rendah");
+
+  const competitionLabel = data.metrics.competition_label || "Rendah";
+
+  // Context-aware product ideas with exact clean keywords from dataset
+  const fallbackProductIdeas =
+    data.category === "Fashion"
+      ? [
+          {
+            id: "1",
+            name: "Hoodie",
+            demand_label: "Tinggi",
+            competition_label: "Tinggi",
+            avg_price_label: "Rp 135.000",
+          },
+          {
+            id: "2",
+            name: "Kaos Pria",
+            demand_label: "Tinggi",
+            competition_label: "Tinggi",
+            avg_price_label: "Rp 43.750",
+          },
+          {
+            id: "3",
+            name: "Kemeja Pria",
+            demand_label: "Tinggi",
+            competition_label: "Tinggi",
+            avg_price_label: "Rp 85.900",
+          },
+        ]
+      : [
+          {
+            id: "1",
+            name: "Frozen Food",
+            demand_label: "Tinggi",
+            competition_label: "Tinggi",
+            avg_price_label: "Rp 22.500",
+          },
+          {
+            id: "2",
+            name: "Keripik",
+            demand_label: "Tinggi",
+            competition_label: "Tinggi",
+            avg_price_label: "Rp 26.775",
+          },
+          {
+            id: "3",
+            name: "Makanan Instan",
+            demand_label: "Tinggi",
+            competition_label: "Tinggi",
+            avg_price_label: "Rp 29.145",
+          },
+        ];
+
+  const productIdeas =
+    data.other_product_ideas && data.other_product_ideas.length > 0
+      ? data.other_product_ideas
+      : fallbackProductIdeas;
 
   return {
     keyword: data.keyword,
@@ -65,38 +132,18 @@ function mapToAnalysisResult(data: BackendAnalyzeResponse): AnalysisResult {
       predicted_demand: data.metrics.predicted_demand,
       demand_label: demandLabel,
       competition_density: data.metrics.competition_density,
-      competition_label: data.metrics.competition_label || "Rendah",
+      competition_label: competitionLabel,
       avg_price: data.metrics.avg_price,
-      avg_price_label: data.metrics.avg_price ? `Rp ${data.metrics.avg_price.toLocaleString("id-ID")}` : "Rp xx",
+      avg_price_label: data.metrics.avg_price
+        ? `Rp ${data.metrics.avg_price.toLocaleString("id-ID")}`
+        : "Rp xx",
       total_shops: Math.round(data.metrics.competition_density * 100),
     },
     recommendation_explanation:
       data.explanations && data.explanations.length > 0
         ? data.explanations.map((exp) => exp.text).join(" ")
-        : `Jumlah Penjualan tinggi dengan mencapai ${data.metrics.predicted_demand} penjualan, Rating rendah (${data.metrics.competition_density}), Jumlah Ulasan cukup`,
-    other_product_ideas: [
-      {
-        id: "1",
-        name: "Cimol Bojot Aa",
-        demand_label: "Tinggi",
-        competition_label: "Tinggi",
-        avg_price_label: "Rp xx",
-      },
-      {
-        id: "2",
-        name: "Dimsum Ayam Mentai",
-        demand_label: "Tinggi",
-        competition_label: "Tinggi",
-        avg_price_label: "Rp xx",
-      },
-      {
-        id: "3",
-        name: "Baso Aci Garut",
-        demand_label: "Tinggi",
-        competition_label: "Rendah",
-        avg_price_label: "Rp 25.000",
-      },
-    ],
+        : `Jumlah Penjualan tinggi dengan mencapai ${data.metrics.predicted_demand} penjualan, persaingan ${competitionLabel.toLowerCase()}`,
+    other_product_ideas: productIdeas,
     explanations: data.explanations.map((exp) => ({
       icon: mapIcon(exp.icon),
       text: exp.text,
@@ -106,40 +153,45 @@ function mapToAnalysisResult(data: BackendAnalyzeResponse): AnalysisResult {
 
 /**
  * Call the backend API to analyze a keyword.
- * Falls back to mock data if the API is unavailable.
- *
- * DEBUG MODE: error logging diperjelas biar ketauan persis kenapa fallback
- * ke mock kejadian (status code, response body, atau parsing error).
- * Setelah masalah kelar, boleh disederhanain lagi.
  */
 export async function analyzeKeyword(keyword: string): Promise<AnalysisResult> {
+  const trimmed = keyword.trim();
+  const matched = findMatchingKeyword(trimmed);
+
+  if (!matched) {
+    throw new Error(`KeywordNotFound: Kata kunci "${trimmed}" tidak ditemukan dalam data.`);
+  }
+
   try {
     const response = await fetch(`${API_BASE_URL}/api/analyze`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ keyword }),
+      body: JSON.stringify({ keyword: matched }),
     });
 
     if (!response.ok) {
-      // Baca body-nya sebelum throw, biar pesan errornya jelas (bukan cuma status code)
+      if (response.status === 404) {
+        throw new Error(`KeywordNotFound: Kata kunci "${trimmed}" tidak ditemukan di data.`);
+      }
       let errorDetail = "";
       try {
         const errorBody = await response.json();
         errorDetail = JSON.stringify(errorBody);
       } catch {
-        errorDetail = await response.text().catch(() => "(tidak bisa baca body)");
+        errorDetail = await response.text().catch(() => "");
       }
       throw new Error(`API error ${response.status}: ${errorDetail}`);
     }
 
     const data: BackendAnalyzeResponse = await response.json();
-    console.info("[analyzeKeyword] Response dari backend:", data);
     return mapToAnalysisResult(data);
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error("[analyzeKeyword] GAGAL, fallback ke mock data. Detail error:", error);
-    return getMockResult(keyword);
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message.startsWith("KeywordNotFound")) {
+      throw error;
+    }
+    console.warn("[analyzeKeyword] Menggunakan mock result sebagai fallback:", error);
+    return getMockResult(matched);
   }
 }

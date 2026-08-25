@@ -193,6 +193,15 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
     result.metrics.avg_price_label ||
     (result.metrics.avg_price ? formatPrice(result.metrics.avg_price) : "Rp xx");
 
+  // Ide Produk Lainnya hanya muncul ketika Estimasi Penjualan/Demand = Tinggi DAN Tingkat Kompetitif = Tinggi
+  const isHighDemand =
+    demandValue.toLowerCase() === "tinggi" ||
+    demandValue.toLowerCase() === "high";
+  const isHighCompetition =
+    competitionValue.toLowerCase() === "tinggi" ||
+    competitionValue.toLowerCase() === "high";
+  const showProductIdeas = isHighDemand && isHighCompetition;
+
   return (
     <div className="w-full max-w-[800px] mx-auto px-2 pt-2 pb-12 animate-[fadeInUp_0.5s_ease_both]">
 
@@ -255,72 +264,74 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
         </p>
       </div>
 
-      {/* 5. Section: Ide Produk Lainnya */}
-      <div className="mb-10">
-        <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">
-          Ide Produk Lainnya
-        </h2>
-        <div className="flex flex-col gap-4">
-          {productIdeas.map((product, idx) => (
-            <div
-              key={product.id || idx}
-              className="border border-[#0B579E] rounded-xl p-4 md:p-5 bg-white shadow-xs flex flex-col md:flex-row items-start md:items-center gap-4"
-            >
-              {/* Left Food Icon */}
-              <BurgerDrinkIcon />
+      {/* 5. Section: Ide Produk Lainnya (Hanya muncul jika Demand Tinggi & Kompetisi Tinggi) */}
+      {showProductIdeas && (
+        <div className="mb-10 animate-[fadeInUp_0.4s_ease_both]">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">
+            Ide Produk Lainnya
+          </h2>
+          <div className="flex flex-col gap-4">
+            {productIdeas.map((product, idx) => (
+              <div
+                key={product.id || idx}
+                className="border border-[#0B579E] rounded-xl p-4 md:p-5 bg-white shadow-xs flex flex-col md:flex-row items-start md:items-center gap-4"
+              >
+                {/* Left Food Icon */}
+                <BurgerDrinkIcon />
 
-              {/* Center/Right Content */}
-              <div className="flex-1 w-full flex flex-col gap-2.5">
-                <h3 className="font-bold text-gray-900 text-base md:text-lg">
-                  {product.name}
-                </h3>
+                {/* Center/Right Content */}
+                <div className="flex-1 w-full flex flex-col gap-2.5">
+                  <h3 className="font-bold text-gray-900 text-base md:text-lg">
+                    {product.name}
+                  </h3>
 
-                {/* 3 Mini Sub-Metric Boxes */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
-                  {/* Mini-Box 1 */}
-                  <div className="border border-[#0B579E] rounded-xl px-3.5 py-2 bg-white flex items-center justify-between shadow-xs">
-                    <div>
-                      <p className="text-[10px] md:text-xs text-gray-600 font-medium">
-                        Estimasi Demand
-                      </p>
-                      <p className="text-xs md:text-sm font-bold text-gray-900">
-                        {product.demand_label}
-                      </p>
+                  {/* 3 Mini Sub-Metric Boxes */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+                    {/* Mini-Box 1 */}
+                    <div className="border border-[#0B579E] rounded-xl px-3.5 py-2 bg-white flex items-center justify-between shadow-xs">
+                      <div>
+                        <p className="text-[10px] md:text-xs text-gray-600 font-medium">
+                          Estimasi Demand
+                        </p>
+                        <p className="text-xs md:text-sm font-bold text-gray-900">
+                          {product.demand_label}
+                        </p>
+                      </div>
+                      <TrendUpIcon />
                     </div>
-                    <TrendUpIcon />
-                  </div>
 
-                  {/* Mini-Box 2 */}
-                  <div className="border border-[#0B579E] rounded-xl px-3.5 py-2 bg-white flex items-center justify-between shadow-xs">
-                    <div>
-                      <p className="text-[10px] md:text-xs text-gray-600 font-medium">
-                        Tingkat Kompetitif
-                      </p>
-                      <p className="text-xs md:text-sm font-bold text-gray-900">
-                        {product.competition_label}
-                      </p>
+                    {/* Mini-Box 2 */}
+                    <div className="border border-[#0B579E] rounded-xl px-3.5 py-2 bg-white flex items-center justify-between shadow-xs">
+                      <div>
+                        <p className="text-[10px] md:text-xs text-gray-600 font-medium">
+                          Tingkat Kompetitif
+                        </p>
+                        <p className="text-xs md:text-sm font-bold text-gray-900">
+                          {product.competition_label}
+                        </p>
+                      </div>
+                      <PeopleIcon />
                     </div>
-                    <PeopleIcon />
-                  </div>
 
-                  {/* Mini-Box 3 */}
-                  <div className="border border-[#0B579E] rounded-xl px-3.5 py-2 bg-white flex items-center justify-between shadow-xs">
-                    <div>
-                      <p className="text-[10px] md:text-xs text-gray-600 font-medium">
-                        Rata - rata harga
-                      </p>
-                      <p className="text-xs md:text-sm font-bold text-gray-900">
-                        {product.avg_price_label}
-                      </p>
+                    {/* Mini-Box 3 */}
+                    <div className="border border-[#0B579E] rounded-xl px-3.5 py-2 bg-white flex items-center justify-between shadow-xs">
+                      <div>
+                        <p className="text-[10px] md:text-xs text-gray-600 font-medium">
+                          Rata - rata harga
+                        </p>
+                        <p className="text-xs md:text-sm font-bold text-gray-900">
+                          {product.avg_price_label}
+                        </p>
+                      </div>
+                      <PriceTagIcon />
                     </div>
-                    <PriceTagIcon />
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
