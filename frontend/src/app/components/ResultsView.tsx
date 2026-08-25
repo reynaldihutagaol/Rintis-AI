@@ -222,7 +222,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
           <div className="absolute top-4 right-4 text-[#0B579E]">
             <TrendUpIcon />
           </div>
-          <p className="text-xs md:text-sm font-semibold text-gray-700">Estimasi Penjualan</p>
+          <p className="text-xs md:text-sm font-semibold text-gray-700">Estimasi Demand</p>
           <p className="text-2xl md:text-3xl font-extrabold text-gray-900 mt-2">{demandValue}</p>
         </div>
 
@@ -281,7 +281,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                   <div className="border border-[#0B579E] rounded-xl px-3.5 py-2 bg-white flex items-center justify-between shadow-xs">
                     <div>
                       <p className="text-[10px] md:text-xs text-gray-600 font-medium">
-                        Estimasi Penjualan
+                        Estimasi Demand
                       </p>
                       <p className="text-xs md:text-sm font-bold text-gray-900">
                         {product.demand_label}

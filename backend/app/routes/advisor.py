@@ -5,7 +5,6 @@ from app.services.opportunity import analyze_keyword
 
 router = APIRouter()
 
-
 @router.post("/api/analyze")
 def analyze(data: InputAnalyze):
     try:

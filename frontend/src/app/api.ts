@@ -8,6 +8,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
  */
 interface BackendAnalyzeResponse {
   keyword: string;
+  matched_keyword?: string;
   category: string;
   opportunity_score: number;
   opportunity_level: string;
@@ -71,7 +72,7 @@ function mapToAnalysisResult(data: BackendAnalyzeResponse): AnalysisResult {
     },
     recommendation_explanation:
       data.explanations && data.explanations.length > 0
-        ? data.explanations.map((exp) => exp.text).join(", ")
+        ? data.explanations.map((exp) => exp.text).join(" ")
         : `Jumlah Penjualan tinggi dengan mencapai ${data.metrics.predicted_demand} penjualan, Rating rendah (${data.metrics.competition_density}), Jumlah Ulasan cukup`,
     other_product_ideas: [
       {
@@ -106,6 +107,10 @@ function mapToAnalysisResult(data: BackendAnalyzeResponse): AnalysisResult {
 /**
  * Call the backend API to analyze a keyword.
  * Falls back to mock data if the API is unavailable.
+ *
+ * DEBUG MODE: error logging diperjelas biar ketauan persis kenapa fallback
+ * ke mock kejadian (status code, response body, atau parsing error).
+ * Setelah masalah kelar, boleh disederhanain lagi.
  */
 export async function analyzeKeyword(keyword: string): Promise<AnalysisResult> {
   try {
@@ -118,14 +123,23 @@ export async function analyzeKeyword(keyword: string): Promise<AnalysisResult> {
     });
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      // Baca body-nya sebelum throw, biar pesan errornya jelas (bukan cuma status code)
+      let errorDetail = "";
+      try {
+        const errorBody = await response.json();
+        errorDetail = JSON.stringify(errorBody);
+      } catch {
+        errorDetail = await response.text().catch(() => "(tidak bisa baca body)");
+      }
+      throw new Error(`API error ${response.status}: ${errorDetail}`);
     }
 
     const data: BackendAnalyzeResponse = await response.json();
+    console.info("[analyzeKeyword] Response dari backend:", data);
     return mapToAnalysisResult(data);
   } catch (error) {
-    console.warn("API unavailable, falling back to mock data:", error);
+    // eslint-disable-next-line no-console
+    console.error("[analyzeKeyword] GAGAL, fallback ke mock data. Detail error:", error);
     return getMockResult(keyword);
   }
 }
-
