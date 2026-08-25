@@ -242,13 +242,8 @@ npm run dev
 **Tim `sakading kading kadung`**  
 COMPFEST 18 (2026)
 
-- **Raffie Aditya Akbar** (NIM: 24060124130054)
-- **Reynaldi Bertinus Hutagaol** (NIM: 24060124140157)
-- **Saburo Rafqi Hidayat** (NIM: 24060124140196)
-- **Syuraih Umar Khotthob** (NIM: 24060124130092)
-- **Yuma Hazza Yuditama** (NIM: 24060124120035)
-
----
-
-## 📄 Lisensi
-Hak Cipta © 2026 Tim `sakading kading kadung`. Dikembangkan khusus untuk COMPFEST 18 AI Innovation Competition (AIC).
+- **Raffie Aditya Akbar**
+- **Reynaldi Bertinus Hutagaol** 
+- **Saburo Rafqi Hidayat** 
+- **Syuraih Umar Khotthob** 
+- **Yuma Hazza Yuditama** 
