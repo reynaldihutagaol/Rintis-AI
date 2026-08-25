@@ -2,7 +2,7 @@
 
 > **COMPFEST 18 AI Innovation Competition (AIC)**  
 > **Tema**: AI for the Backbone of the Economy — *Smart Commerce*  
-> **Tim**: `sakading kading kadung` | **Institusi**: Universitas Diponegoro  
+> **Tim**: `sakading kading kadung` 
 
 ---
 
@@ -240,7 +240,7 @@ npm run dev
 ## 👥 Tim Pengembang
 
 **Tim `sakading kading kadung`**  
-*Universitas Diponegoro* — COMPFEST 18 (2026)
+COMPFEST 18 (2026)
 
 - **Raffie Aditya Akbar** (NIM: 24060124130054)
 - **Reynaldi Bertinus Hutagaol** (NIM: 24060124140157)
