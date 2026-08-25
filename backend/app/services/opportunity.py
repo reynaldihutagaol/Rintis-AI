@@ -1,226 +1,210 @@
 """
 Opportunity analysis service.
-Currently returns dummy data — will be replaced with real ML model in Phase 6.
+Real XGBoost + SHAP prediction (dummy data sudah tidak dipakai lagi).
 """
+
+import difflib
+import os
+
+import numpy as np
+import pandas as pd
+import xgboost as xgb
+import joblib
+
+# ── Path model, gak tergantung cwd saat run uvicorn ──
+SERVICES_DIR = os.path.dirname(os.path.abspath(__file__))   # backend/app/services
+APP_DIR = os.path.dirname(SERVICES_DIR)                      # backend/app
+BACKEND_DIR = os.path.dirname(APP_DIR)                        # backend
+ML_DIR = os.path.join(BACKEND_DIR, "ml")                      # backend/ml
+
+# Dimuat sekali saat module ini pertama kali di-import (bukan tiap request)
+model = xgb.XGBRegressor()
+model.load_model(os.path.join(ML_DIR, "xgb_model.json"))
+encoder = joblib.load(os.path.join(ML_DIR, "target_encoder.pkl"))
+market_ref = joblib.load(os.path.join(ML_DIR, "market_reference.pkl"))
+explainer = joblib.load(os.path.join(ML_DIR, "shap_explainer.pkl"))
+
+_AVAILABLE_KEYWORDS = market_ref["keyword"].unique().tolist()
+
+
+def _resolve_keyword(keyword_lower: str) -> str:
+    """
+    Cari keyword di market_reference yang paling cocok dengan input user,
+    gak harus exact match. Urutan pencarian:
+      1. Exact match.
+      2. Substring — misal user ketik "dimsum" dan data punya
+         "frozen food dimsum".
+      3. Fuzzy match pakai difflib (typo, urutan kata beda dikit, dll).
+    Raise ValueError kalau gak ada kandidat yang cukup mirip, biar route
+    bisa balikin 404 yang jelas ke frontend (bukan 500 generic).
+    """
+    if keyword_lower in _AVAILABLE_KEYWORDS:
+        return keyword_lower
+
+    substring_matches = [
+        k for k in _AVAILABLE_KEYWORDS
+        if keyword_lower in k or k in keyword_lower
+    ]
+    if substring_matches:
+        # Ambil yang paling pendek/mirip dulu (paling relevan)
+        substring_matches.sort(key=len)
+        return substring_matches[0]
+
+    close_matches = difflib.get_close_matches(
+        keyword_lower, _AVAILABLE_KEYWORDS, n=1, cutoff=0.4
+    )
+    if close_matches:
+        return close_matches[0]
+
+    raise ValueError(f"Keyword '{keyword_lower}' tidak ditemukan di data pasar.")
+
+
+def _competition_label(hhi: float) -> str:
+    """
+    TODO: threshold masih tebakan, sesuaikan dengan definisi bisnis kamu.
+    Ini murni statistik pasar (HHI), bukan output SHAP, jadi tetap
+    dihitung terpisah dari fungsi-fungsi berbasis SHAP di bawah.
+    """
+    if hhi < 0.15:
+        return "Rendah"
+    elif hhi < 0.30:
+        return "Sedang"
+    return "Tinggi"
+
+
+# Label manusiawi untuk tiap fitur, dipakai buat generate teks penjelasan
+# otomatis dari SHAP values. Tambah entry di sini kalau nanti ada fitur baru.
+FEATURE_LABELS: dict[str, str] = {
+    "log_price": "Harga produk",
+    "price_relative_to_median": "Harga dibanding median pasar",
+    "hhi_market_concentration": "Konsentrasi pasar (dominasi top seller)",
+    "log_wishlist_count": "Minat pasar (wishlist)",
+    "positive_eWOM_ratio": "Sentimen ulasan positif (eWOM)",
+    "keyword_encoded": "Karakteristik niche keyword",
+}
+
+
+def _explanation_for_feature(feature: str, shap_value: float) -> dict:
+    """
+    Bikin satu baris penjelasan dari nama fitur + kontribusi SHAP-nya.
+    Icon dan arah kalimat ditentukan dari tanda (+/-) nilai SHAP.
+    """
+    label = FEATURE_LABELS.get(feature, feature)
+    if shap_value >= 0:
+        icon = "✅"
+        arah = "mendorong naik"
+    else:
+        icon = "⚠️"
+        arah = "menekan"
+    return {
+        "icon": icon,
+        "text": f"{label} {arah} estimasi penjualan (kontribusi SHAP: {shap_value:+.3f}).",
+    }
+
+
+def _build_explanations(kontribusi: dict, top_n: int = 3) -> list[dict]:
+    """
+    Bangun daftar penjelasan otomatis dari SHAP values — diurutkan
+    berdasarkan besarnya pengaruh (|shap value|) ke prediksi, ambil top_n
+    paling berpengaruh. Ini menggantikan pendekatan lama yang cuma
+    hardcode 2 kondisi if/else.
+    """
+    sorted_features = sorted(
+        kontribusi.items(), key=lambda kv: abs(kv[1]), reverse=True
+    )
+    return [
+        _explanation_for_feature(feature, value)
+        for feature, value in sorted_features[:top_n]
+    ]
+
+
+def _opportunity_score(kontribusi: dict) -> tuple[int, str, str]:
+    """
+    Skor dihitung dari total kontribusi SHAP (net effect kasus ini relatif
+    terhadap base value model), di-scale ke 0-100 lewat sigmoid.
+    net_shap > 0 artinya prediksi kasus ini di atas rata-rata (base value)
+    model; net_shap < 0 artinya di bawah rata-rata.
+
+    TODO: skala sigmoid ini masih perlu divalidasi terhadap distribusi
+    net_shap di seluruh keyword yang ada di market_ref, biar threshold
+    high/medium/low-nya representatif (sekarang cuma dibagi rata 70/40).
+    """
+    net_shap = sum(kontribusi.values())
+    score = int(round(100 / (1 + np.exp(-net_shap))))
+    score = max(0, min(100, score))
+
+    if score >= 70:
+        level, label = "high", "High Opportunity"
+    elif score >= 40:
+        level, label = "medium", "Medium Opportunity"
+    else:
+        level, label = "low", "Low Opportunity"
+
+    return score, level, label
 
 
 def analyze_keyword(keyword: str) -> dict:
     """
-    Analyze a keyword and return opportunity data.
-    TODO: Replace dummy data with real XGBoost model + SHAP (Phase 6).
+    Analyze a keyword and return opportunity data hasil prediksi model asli.
+    Harga simulasi otomatis pakai median harga pasar untuk keyword tsb
+    (frontend cuma kirim keyword, tanpa input harga — lihat SearchBar.tsx).
+    Keyword gak harus exact match — lihat _resolve_keyword().
     """
-
-    dummy_data = {
-        "gamis syar'i premium": {
-            "category": "Fashion",
-            "opportunity_score": 81,
-            "opportunity_level": "high",
-            "opportunity_label": "High Opportunity — Enter Market",
-            "metrics": {
-                "predicted_demand": 920,
-                "competition_density": 0.12,
-                "competition_label": "Rendah",
-                "avg_price": 185000,
-            },
-            "explanations": [
-                {"icon": "✅", "text": "Persaingan sangat rendah (0.12) — sedikit seller di niche ini"},
-                {"icon": "✅", "text": "Demand tinggi (920 unit) — tren modest fashion terus naik"},
-                {"icon": "✅", "text": "Harga tinggi (Rp 185.000) — margin besar per unit"},
-            ],
-            "shap_features": [
-                {"name": "Competition", "value": 0.35},
-                {"name": "Demand", "value": 0.28},
-                {"name": "Price", "value": 0.18},
-                {"name": "Rating", "value": 0.09},
-            ],
-            "whatif": {
-                "current_price": 185000,
-                "min_price": 148000,
-                "max_price": 222000,
-                "current_demand": 920,
-            },
-        },
-        "kaos polos": {
-            "category": "Fashion",
-            "opportunity_score": 18,
-            "opportunity_level": "red_ocean",
-            "opportunity_label": "High Risk — Red Ocean",
-            "metrics": {
-                "predicted_demand": 3200,
-                "competition_density": 0.94,
-                "competition_label": "Sangat Tinggi",
-                "avg_price": 35000,
-            },
-            "explanations": [
-                {"icon": "❌", "text": "Persaingan sangat tinggi (0.94) — pasar sudah jenuh"},
-                {"icon": "✅", "text": "Demand tinggi (3.200 unit) — tapi terbagi ke banyak seller"},
-                {"icon": "❌", "text": "Harga sangat rendah (Rp 35.000) — margin tipis"},
-            ],
-            "shap_features": [
-                {"name": "Competition", "value": 0.42},
-                {"name": "Demand", "value": 0.25},
-                {"name": "Price", "value": 0.20},
-                {"name": "Rating", "value": 0.08},
-            ],
-            "whatif": {
-                "current_price": 35000,
-                "min_price": 28000,
-                "max_price": 42000,
-                "current_demand": 3200,
-            },
-        },
-        "frozen food dimsum": {
-            "category": "Makanan",
-            "opportunity_score": 74,
-            "opportunity_level": "high",
-            "opportunity_label": "High Opportunity — Enter Market",
-            "metrics": {
-                "predicted_demand": 780,
-                "competition_density": 0.18,
-                "competition_label": "Rendah",
-                "avg_price": 45000,
-            },
-            "explanations": [
-                {"icon": "✅", "text": "Persaingan rendah (0.18) — belum banyak seller frozen dimsum"},
-                {"icon": "✅", "text": "Demand tinggi (780 unit) — tren frozen food terus naik"},
-                {"icon": "⚠️", "text": "Harga menengah (Rp 45.000) — margin cukup baik"},
-            ],
-            "shap_features": [
-                {"name": "Competition", "value": 0.33},
-                {"name": "Demand", "value": 0.30},
-                {"name": "Price", "value": 0.15},
-                {"name": "Rating", "value": 0.10},
-            ],
-            "whatif": {
-                "current_price": 45000,
-                "min_price": 36000,
-                "max_price": 54000,
-                "current_demand": 780,
-            },
-        },
-        "snack pedas kekinian": {
-            "category": "Makanan",
-            "opportunity_score": 48,
-            "opportunity_level": "niche",
-            "opportunity_label": "Niche Differentiation Required",
-            "metrics": {
-                "predicted_demand": 560,
-                "competition_density": 0.58,
-                "competition_label": "Sedang",
-                "avg_price": 28000,
-            },
-            "explanations": [
-                {"icon": "⚠️", "text": "Persaingan sedang (0.58) — perlu diferensiasi produk"},
-                {"icon": "✅", "text": "Demand lumayan (560 unit) — pasar masih aktif"},
-                {"icon": "❌", "text": "Harga rendah (Rp 28.000) — margin kecil"},
-            ],
-            "shap_features": [
-                {"name": "Competition", "value": 0.30},
-                {"name": "Demand", "value": 0.27},
-                {"name": "Price", "value": 0.22},
-                {"name": "Rating", "value": 0.11},
-            ],
-            "whatif": {
-                "current_price": 28000,
-                "min_price": 22400,
-                "max_price": 33600,
-                "current_demand": 560,
-            },
-        },
-        "kopi susu literan": {
-            "category": "Minuman",
-            "opportunity_score": 55,
-            "opportunity_level": "niche",
-            "opportunity_label": "Niche Differentiation Required",
-            "metrics": {
-                "predicted_demand": 480,
-                "competition_density": 0.47,
-                "competition_label": "Sedang",
-                "avg_price": 65000,
-            },
-            "explanations": [
-                {"icon": "⚠️", "text": "Persaingan sedang (0.47) — banyak brand bermunculan"},
-                {"icon": "✅", "text": "Demand cukup (480 unit) — kebiasaan ngopi masih tinggi"},
-                {"icon": "✅", "text": "Harga menengah-tinggi (Rp 65.000) — margin lumayan"},
-            ],
-            "shap_features": [
-                {"name": "Competition", "value": 0.28},
-                {"name": "Demand", "value": 0.26},
-                {"name": "Price", "value": 0.24},
-                {"name": "Rating", "value": 0.12},
-            ],
-            "whatif": {
-                "current_price": 65000,
-                "min_price": 52000,
-                "max_price": 78000,
-                "current_demand": 480,
-            },
-        },
-        "teh botol kemasan": {
-            "category": "Minuman",
-            "opportunity_score": 15,
-            "opportunity_level": "red_ocean",
-            "opportunity_label": "High Risk — Red Ocean",
-            "metrics": {
-                "predicted_demand": 4500,
-                "competition_density": 0.96,
-                "competition_label": "Sangat Tinggi",
-                "avg_price": 5000,
-            },
-            "explanations": [
-                {"icon": "❌", "text": "Persaingan ekstrem (0.96) — didominasi brand besar"},
-                {"icon": "✅", "text": "Demand sangat tinggi (4.500 unit) — tapi dikuasai pemain lama"},
-                {"icon": "❌", "text": "Harga sangat rendah (Rp 5.000) — margin nyaris nol"},
-            ],
-            "shap_features": [
-                {"name": "Competition", "value": 0.45},
-                {"name": "Demand", "value": 0.22},
-                {"name": "Price", "value": 0.20},
-                {"name": "Rating", "value": 0.06},
-            ],
-            "whatif": {
-                "current_price": 5000,
-                "min_price": 4000,
-                "max_price": 6000,
-                "current_demand": 4500,
-            },
-        },
-    }
-
-    default = {
-        "category": "Umum",
-        "opportunity_score": 50,
-        "opportunity_level": "niche",
-        "opportunity_label": "Niche Differentiation Required",
-        "metrics": {
-            "predicted_demand": 500,
-            "competition_density": 0.50,
-            "competition_label": "Sedang",
-            "avg_price": 50000,
-        },
-        "explanations": [
-            {"icon": "⚠️", "text": "Persaingan sedang — perlu strategi diferensiasi"},
-            {"icon": "✅", "text": "Demand cukup — ada potensi pasar"},
-            {"icon": "⚠️", "text": "Harga menengah — margin standar"},
-        ],
-        "shap_features": [
-            {"name": "Competition", "value": 0.30},
-            {"name": "Demand", "value": 0.28},
-            {"name": "Price", "value": 0.22},
-            {"name": "Rating", "value": 0.10},
-        ],
-        "whatif": {
-            "current_price": 50000,
-            "min_price": 40000,
-            "max_price": 60000,
-            "current_demand": 500,
-        },
-    }
-
     keyword_lower = keyword.lower().strip()
-    data = dummy_data.get(keyword_lower, default)
+    matched_keyword = _resolve_keyword(keyword_lower)
+    stats = market_ref[market_ref["keyword"] == matched_keyword].iloc[0]
+
+    harga = int(stats["median_price"])
+
+    kw_encoded = encoder.transform(
+        pd.DataFrame({"keyword": [matched_keyword]})
+    )["keyword"].iloc[0]
+
+    fitur_baru = pd.DataFrame({
+        "keyword_encoded": [kw_encoded],
+        "log_price": [np.log1p(harga)],
+        "price_relative_to_median": [harga / stats["median_price"]],
+        "hhi_market_concentration": [stats["hhi_pasar"]],
+        "log_wishlist_count": [np.log1p(stats["median_wishlist"])],
+        "positive_eWOM_ratio": [stats["median_eWOM"]],
+    })
+
+    prediksi_log = model.predict(fitur_baru)[0]
+    estimasi_terjual = int(np.expm1(prediksi_log))
+
+    shap_vals = explainer.shap_values(fitur_baru)[0]
+    kontribusi = dict(zip(fitur_baru.columns, shap_vals))
+
+    explanations = _build_explanations(kontribusi)
+    competition_label = _competition_label(stats["hhi_pasar"])
+    score, level, label = _opportunity_score(kontribusi)
 
     return {
         "keyword": keyword,
-        **data,
+        # Keyword asli di data pasar yang dipakai untuk prediksi (berguna
+        # buat debug kalau input user gak exact match).
+        "matched_keyword": matched_keyword,
+        # TODO: kategori masih hardcode. Ganti kalau market_ref punya kolom
+        # kategori sendiri, atau bikin mapping keyword -> kategori.
+        "category": "F&B",
+        "opportunity_score": score,
+        "opportunity_level": level,
+        "opportunity_label": label,
+        "metrics": {
+            "predicted_demand": estimasi_terjual,
+            "competition_density": float(stats["hhi_pasar"]),
+            "competition_label": competition_label,
+            "avg_price": harga,
+        },
+        "explanations": explanations,
+        "shap_features": [
+            {"name": k, "value": float(v)} for k, v in kontribusi.items()
+        ],
+        "whatif": {
+            "current_price": harga,
+            # TODO: range ini placeholder (±30% dari harga).
+            "min_price": int(harga * 0.7),
+            "max_price": int(harga * 1.3),
+            "current_demand": estimasi_terjual,
+        },
     }

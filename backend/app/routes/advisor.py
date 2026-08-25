@@ -1,21 +1,14 @@
-"""
-Advisor API routes.
-Handles the /api/analyze endpoint.
-"""
+from fastapi import APIRouter, HTTPException
 
-from fastapi import APIRouter
-
-from app.models.schemas import AnalyzeRequest, AnalyzeResponse
+from app.models.schemas import InputAnalyze
 from app.services.opportunity import analyze_keyword
 
 router = APIRouter()
 
 
-@router.post("/analyze", response_model=AnalyzeResponse)
-async def analyze(request: AnalyzeRequest):
-    """
-    Analyze a keyword and return opportunity score,
-    metrics, SHAP explanations, and what-if simulation data.
-    """
-    result = analyze_keyword(request.keyword)
-    return result
+@router.post("/api/analyze")
+def analyze(data: InputAnalyze):
+    try:
+        return analyze_keyword(data.keyword)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))

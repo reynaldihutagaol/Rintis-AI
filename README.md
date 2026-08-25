@@ -218,7 +218,7 @@ npm install
 # Jalankan dev server
 npm run dev
 ```
-*Frontend akan berjalan di `http://localhost:3000`.*
+*Frontend akan berjalan di ``.*
 
 ---
 
@@ -237,3 +237,4 @@ npm run dev
 
 ## 📄 Lisensi
 Hak Cipta © 2026 Tim `sakading kading kadung`. Dikembangkan khusus untuk COMPFEST 18 AI Innovation Competition (AIC).
+http://localhost:3000
