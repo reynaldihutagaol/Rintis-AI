@@ -37,3 +37,6 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# Hugging Face deployment repo
+hf-space/
